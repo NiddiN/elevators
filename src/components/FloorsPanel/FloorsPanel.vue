@@ -29,17 +29,15 @@ export default Vue.extend({
   props: {
     floorsAmount: Number,
   },
-  data() {
-    return {
-      startFloor: 1,
-    };
-  },
+  data: () => ({
+    startFloor: 1,
+  }),
   methods: {
-    onFloorClicked(endFloor: number) {
+    onFloorClicked(destinationFloor: number) {
       const { startFloor } = this;
       const payload = {
         startFloor: +startFloor,
-        endFloor,
+        destinationFloor,
       };
 
       this.$emit("floorChanged", payload);
@@ -48,7 +46,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="css" scoped>
+<style lang="scss" scoped>
 .panel {
   border: 1px solid #c2c2c2;
   display: flex;

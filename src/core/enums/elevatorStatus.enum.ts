@@ -1,5 +1,5 @@
 export enum EElevatorStatus {
-  idle = "idle",
-  waiting = "waiting",
-  moving = "moving",
+  IDLE = "idle",
+  WAITING = "waiting",
+  MOVING = "moving",
 }

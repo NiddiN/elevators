@@ -1,2 +1,1 @@
-export { IDestinationFloor } from "./destinationFloor.interface";
-export { IElevator } from "./elevator.interface";
+export { IDestinationInfo } from "./destinationInfo.interface";
