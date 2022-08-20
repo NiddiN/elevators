@@ -1,5 +1,5 @@
 <template>
-  <div class="wrapper">
+  <div class="wrapper" v-if="floorsAmount">
     <div class="building">
       <div
         class="column"
@@ -41,11 +41,16 @@ export default Vue.extend({
     };
   },
   mounted() {
-    new Array(this.elevatorsAmount)
-      .fill(1)
-      .forEach((item, index) => this.elevators.push(new Elevator(index + 1)));
+    this.createElevetors();
   },
   methods: {
+    createElevetors() {
+      this.elevators.length = 0;
+
+      new Array(this.elevatorsAmount)
+        .fill(1)
+        .forEach((item, index) => this.elevators.push(new Elevator(index + 1)));
+    },
     onFloorChanged(destinationFloor: IDestinationFloor) {
       const freeElevators = this.elevators.filter(
         (elevator) => elevator.status === EElevatorStatus.idle
@@ -81,6 +86,15 @@ export default Vue.extend({
             ? 1
             : -1
         )[0];
+    },
+  },
+  watch: {
+    elevatorsAmount(newValue) {
+      if (!newValue || newValue === this.elevators.length) {
+        return;
+      }
+
+      this.createElevetors();
     },
   },
   components: {

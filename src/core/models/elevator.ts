@@ -25,7 +25,6 @@ export class Elevator {
 
   private _status = EElevatorStatus.idle;
   get status(): EElevatorStatus {
-    console.log(this._status);
     return this._status;
   }
 

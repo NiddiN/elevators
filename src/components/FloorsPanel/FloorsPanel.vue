@@ -1,8 +1,13 @@
 <template>
   <div>
-    <select v-model="startFloor">
-      <option v-for="key in floorsAmount" :key="key">{{ key }}</option>
-    </select>
+    <div class="input">
+      <label for="currentFloor">Your floor: </label>
+      <select v-model="startFloor">
+        <option name="currentFloor" v-for="key in floorsAmount" :key="key">
+          {{ key }}
+        </option>
+      </select>
+    </div>
     <div class="panel">
       <div
         class="button"
@@ -43,7 +48,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="css">
+<style lang="css" scoped>
 .panel {
   border: 1px solid #c2c2c2;
   display: flex;
@@ -61,5 +66,9 @@ export default Vue.extend({
   height: 2em;
   justify-content: center;
   width: 2em;
+}
+
+.input {
+  width: 122px !important;
 }
 </style>
