@@ -1,4 +1,5 @@
 export interface IDestinationInfo {
-  startFloor: number;
   destinationFloor: number;
+  direction: string;
+  startFloor: number;
 }

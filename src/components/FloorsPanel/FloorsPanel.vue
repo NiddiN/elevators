@@ -38,6 +38,7 @@ export default Vue.extend({
       const payload = {
         startFloor: +startFloor,
         destinationFloor,
+        direction: startFloor > destinationFloor ? "down" : "up",
       };
 
       this.$emit("floorChanged", payload);

@@ -24,7 +24,7 @@ export default Vue.extend({
   name: "App",
   data() {
     return {
-      elevatorsAmount: 3,
+      elevatorsAmount: 1,
       floorsAmount: 15,
     };
   },

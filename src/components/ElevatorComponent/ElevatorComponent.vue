@@ -16,8 +16,9 @@ import { FLOOR_HEIGHT } from "@/core/constants";
 interface IElevatorData {
   currentFloor: number;
   destinationInfo: IDestinationInfo | null;
-  queue: IDestinationInfo[];
+  direction: string;
   status: EElevatorStatus;
+  queue: IDestinationInfo[];
 }
 
 export default Vue.extend({
@@ -25,8 +26,9 @@ export default Vue.extend({
   data: (): IElevatorData => ({
     currentFloor: 1,
     destinationInfo: null,
-    queue: [],
+    direction: "",
     status: EElevatorStatus.IDLE,
+    queue: [],
   }),
   methods: {
     addToQueue(destinationInfo: IDestinationInfo) {
@@ -52,8 +54,8 @@ export default Vue.extend({
       this.moveElevator();
     },
 
-    removeDestinationInfo() {
-      this.queue.shift();
+    removeDestinationInfo(destinationInfo: IDestinationInfo) {
+      this.queue = this.queue.filter((request) => request !== destinationInfo);
     },
 
     startElevator() {
@@ -67,29 +69,67 @@ export default Vue.extend({
         return;
       }
 
-      const destinationInfo =
+      const destinationFloor =
         this.destinationInfo.startFloor ||
         this.destinationInfo.destinationFloor;
 
-      if (destinationInfo === this.currentFloor) {
+      const sameDirectionRequests = !this.direction
+        ? this.queue
+        : this.queue.filter((request) => request.direction === this.direction);
+      const needToStop = sameDirectionRequests.find(
+        (request) =>
+          request.startFloor === this.currentFloor ||
+          (!request.startFloor &&
+            request.destinationFloor === this.currentFloor)
+      );
+
+      if (needToStop) {
+        let infoWasRemoved = false;
+
+        sameDirectionRequests.forEach((request) => {
+          if (request.startFloor === this.currentFloor) {
+            request.startFloor = 0;
+          } else if (
+            !request.startFloor &&
+            request.destinationFloor === this.currentFloor
+          ) {
+            infoWasRemoved = true;
+            this.removeDestinationInfo(request);
+          }
+        });
+
         this.status = EElevatorStatus.WAITING;
 
-        if (destinationInfo === this.destinationInfo?.startFloor) {
+        if (infoWasRemoved) {
+          this.setWaitTimeout(this.setDestinationInfo.bind(this));
+        } else {
+          this.setWaitTimeout(this.moveElevator.bind(this));
+        }
+
+        return;
+      }
+
+      if (destinationFloor === this.currentFloor) {
+        this.status = EElevatorStatus.WAITING;
+
+        if (destinationFloor === this.destinationInfo?.startFloor) {
           this.destinationInfo.startFloor = 0;
           this.setWaitTimeout(this.moveElevator.bind(this));
 
           return;
         } else {
-          this.removeDestinationInfo();
+          this.removeDestinationInfo(this.destinationInfo);
           this.setWaitTimeout(this.setDestinationInfo.bind(this));
 
           return;
         }
       }
 
-      if (destinationInfo > this.currentFloor) {
+      if (destinationFloor > this.currentFloor) {
+        this.direction = "up";
         this.currentFloor++;
       } else {
+        this.direction = "down";
         this.currentFloor--;
       }
 

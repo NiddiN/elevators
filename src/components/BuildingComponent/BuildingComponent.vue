@@ -38,7 +38,7 @@ export default Vue.extend({
   },
   methods: {
     onFloorChanged(destinationInfo: IDestinationInfo) {
-      console.log(this.$refs.elevators);
+      console.log(destinationInfo);
       const elevators = this.$refs.elevators || [];
       const freeElevators = elevators.filter(
         (elevator) => elevator.status === EElevatorStatus.IDLE
