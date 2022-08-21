@@ -9,7 +9,7 @@
 <script lang="ts">
 import Vue from "vue";
 
-import { EElevatorStatus } from "@/core/enums";
+import { EElevatorStatus, EElevatorDirection } from "@/core/enums";
 import { IDestinationInfo } from "@/core/interfaces";
 import { FLOOR_HEIGHT } from "@/core/constants";
 
@@ -25,7 +25,7 @@ export interface IElevatorComponent extends IElevatorData {
 interface IElevatorData {
   currentFloor: number;
   destinationInfo: IDestinationInfo | null;
-  direction: string;
+  direction: EElevatorDirection | null;
   status: EElevatorStatus;
   queue: IDestinationInfo[];
 }
@@ -36,7 +36,7 @@ export default Vue.extend({
   data: (): IElevatorData => ({
     currentFloor: 1,
     destinationInfo: null,
-    direction: "",
+    direction: null,
     status: EElevatorStatus.IDLE,
     queue: [],
   }),
@@ -96,10 +96,10 @@ export default Vue.extend({
 
       if (destinationFloor !== this.currentFloor) {
         if (destinationFloor > this.currentFloor) {
-          this.direction = "up";
+          this.direction = EElevatorDirection.UP;
           this.currentFloor++;
         } else {
-          this.direction = "down";
+          this.direction = EElevatorDirection.DOWN;
           this.currentFloor--;
         }
       }
@@ -162,6 +162,12 @@ export default Vue.extend({
   computed: {
     styles() {
       return { bottom: FLOOR_HEIGHT * (this.currentFloor - 1) + "px" };
+    },
+  },
+
+  watch: {
+    queue() {
+      this.$emit("queueUpdated", this.queue);
     },
   },
 });

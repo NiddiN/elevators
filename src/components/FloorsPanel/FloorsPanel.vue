@@ -24,6 +24,8 @@
 <script lang="ts">
 import Vue from "vue";
 
+import { EElevatorDirection } from "@/core/enums";
+
 export default Vue.extend({
   name: "FloorsPanel",
 
@@ -38,10 +40,18 @@ export default Vue.extend({
   methods: {
     onFloorClicked(destinationFloor: number) {
       const { startFloor } = this;
+
+      if (+startFloor === destinationFloor) {
+        return;
+      }
+
       const payload = {
         startFloor: +startFloor,
         destinationFloor,
-        direction: startFloor > destinationFloor ? "down" : "up",
+        direction:
+          startFloor > destinationFloor
+            ? EElevatorDirection.DOWN
+            : EElevatorDirection.UP,
         passengersPickedUp: false,
       };
 

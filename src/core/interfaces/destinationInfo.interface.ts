@@ -1,6 +1,8 @@
+import { EElevatorDirection } from "../enums";
+
 export interface IDestinationInfo {
   destinationFloor: number;
-  direction: string;
+  direction: EElevatorDirection;
   startFloor: number;
   passengersPickedUp: boolean;
 }
