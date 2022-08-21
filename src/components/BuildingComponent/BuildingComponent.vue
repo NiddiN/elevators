@@ -45,6 +45,10 @@ export default Vue.extend({
       const freeElevators = elevators.filter(
         (elevator) => elevator.status === EElevatorStatus.IDLE
       );
+      const passingElevator = this.getPassingElevator(
+        elevators,
+        destinationInfo
+      );
       let elevator;
 
       if (freeElevators.length) {
@@ -52,6 +56,8 @@ export default Vue.extend({
           freeElevators,
           destinationInfo.startFloor
         );
+      } else if (passingElevator) {
+        elevator = passingElevator;
       } else {
         elevator = this.getClosestByDestinationFloor(
           elevators.slice(),
@@ -60,6 +66,52 @@ export default Vue.extend({
       }
 
       elevator.addToQueue(destinationInfo);
+    },
+
+    getPassingElevator(
+      elevators: IElevatorComponent[],
+      newRequest: IDestinationInfo
+    ): IElevatorComponent | undefined {
+      const isPassingDirection = (
+        direction: string,
+        floor: number,
+        destinationDirection: string,
+        destinationFloor: number,
+        isElevatorMoving = false
+      ): boolean => {
+        return (
+          direction === destinationDirection &&
+          ((direction === "up" &&
+            floor <= destinationFloor &&
+            !isElevatorMoving) ||
+            (direction === "down" &&
+              floor >= destinationFloor &&
+              !isElevatorMoving))
+        );
+      };
+
+      return elevators.find(
+        ({ direction, destinationInfo, currentFloor, status }) =>
+          isPassingDirection(
+            direction,
+            currentFloor,
+            newRequest.direction,
+            newRequest.startFloor
+          ) ||
+          (isPassingDirection(
+            newRequest.direction,
+            newRequest.startFloor,
+            destinationInfo?.direction || "",
+            destinationInfo?.destinationFloor || 0
+          ) &&
+            isPassingDirection(
+              destinationInfo?.direction || "",
+              destinationInfo?.startFloor || 0,
+              newRequest.direction,
+              newRequest.startFloor,
+              status === EElevatorStatus.MOVING
+            ))
+      );
     },
 
     getClosestByCurrentFloor(elevators: Elevator[], startFloor: number) {

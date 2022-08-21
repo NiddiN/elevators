@@ -42,6 +42,7 @@ export default Vue.extend({
         startFloor: +startFloor,
         destinationFloor,
         direction: startFloor > destinationFloor ? "down" : "up",
+        passengersPickedUp: false,
       };
 
       this.$emit("floorChanged", payload);

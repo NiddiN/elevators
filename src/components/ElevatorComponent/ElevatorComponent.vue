@@ -85,10 +85,10 @@ export default Vue.extend({
         return;
       }
 
-      // NOTE: Getting current destination floor. If an elevator stopped on the floor then the floor = 0.
-      const destinationFloor =
-        this.destinationInfo.startFloor ||
-        this.destinationInfo.destinationFloor;
+      // NOTE: Getting the current destination floor. If passengers picked up then an elevator moves to the destination floor.
+      const destinationFloor = this.destinationInfo.passengersPickedUp
+        ? this.destinationInfo.destinationFloor
+        : this.destinationInfo.startFloor;
 
       if (this.isPassingPassengersStop()) {
         return;
@@ -120,20 +120,21 @@ export default Vue.extend({
       let isElevatorStopped = false;
 
       sameDirectionRequests.forEach((request) => {
-        // NOTE: This conditions check that current floor is start floor of any not current request
-        // and request's direction equal elevator direction.
+        // NOTE: This condition checks that current floor is a start floor of any request
+        // and request's direction equal to an elevator direction.
         // Also condition (this.destinationInfo?.startFloor === this.currentFloor && this.destinationInfo.direction === request.direction)
-        // solve and issue when the elevator don't passing passengers when there is a change of direction on the current floor
+        // solves and issue when an elevator doesn't passing passengers when there is a change of direction on the current floor
         if (
+          !request.passengersPickedUp &&
           request.startFloor === this.currentFloor &&
           (this.destinationInfo?.direction === request.direction ||
             (this.destinationInfo?.startFloor === this.currentFloor &&
               this.destinationInfo.direction === request.direction))
         ) {
-          request.startFloor = 0;
+          request.passengersPickedUp = true;
           isElevatorStopped = true;
         } else if (
-          !request.startFloor &&
+          request.passengersPickedUp &&
           request.destinationFloor === this.currentFloor &&
           this.direction === request.direction
         ) {
