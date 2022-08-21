@@ -24,7 +24,9 @@ import { EElevatorStatus } from "../../core/enums";
 import { Elevator } from "../../core/models";
 
 import FloorsPanel from "../FloorsPanel/FloorsPanel.vue";
-import ElevatorComponent from "../ElevatorComponent/ElevatorComponent.vue";
+import ElevatorComponent, {
+  IElevatorComponent,
+} from "../ElevatorComponent/ElevatorComponent.vue";
 
 export default Vue.extend({
   name: "BuildingComponent",
@@ -38,19 +40,24 @@ export default Vue.extend({
   },
   methods: {
     onFloorChanged(destinationInfo: IDestinationInfo) {
-      const elevators = this.$refs.elevators || [];
+      const elevators = (this.$refs.elevators ||
+        []) as unknown as IElevatorComponent[];
       const freeElevators = elevators.filter(
         (elevator) => elevator.status === EElevatorStatus.IDLE
       );
-      const elevator = freeElevators.length
-        ? this.getClosestByCurrentFloor(
-            freeElevators,
-            destinationInfo.startFloor
-          )
-        : this.getClosestByDestinationFloor(
-            elevators.slice(),
-            destinationInfo.startFloor
-          );
+      let elevator;
+
+      if (freeElevators.length) {
+        elevator = this.getClosestByCurrentFloor(
+          freeElevators,
+          destinationInfo.startFloor
+        );
+      } else {
+        elevator = this.getClosestByDestinationFloor(
+          elevators.slice(),
+          destinationInfo.startFloor
+        );
+      }
 
       elevator.addToQueue(destinationInfo);
     },

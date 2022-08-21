@@ -13,6 +13,15 @@ import { EElevatorStatus } from "@/core/enums";
 import { IDestinationInfo } from "@/core/interfaces";
 import { FLOOR_HEIGHT } from "@/core/constants";
 
+export interface IElevatorComponent extends IElevatorData {
+  addToQueue(destinationInfo: IDestinationInfo): void;
+  setDestinationInfo(): void;
+  removeDestinationInfo(destinationInfo: IDestinationInfo | null): void;
+  moveElevator(): void;
+  setWaitTimeout(callback: () => void): void;
+  isPassingPassengersStop(): boolean;
+}
+
 interface IElevatorData {
   currentFloor: number;
   destinationInfo: IDestinationInfo | null;
