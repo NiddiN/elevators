@@ -26,12 +26,15 @@ import Vue from "vue";
 
 export default Vue.extend({
   name: "FloorsPanel",
+
   props: {
     floorsAmount: Number,
   },
+
   data: () => ({
     startFloor: 1,
   }),
+
   methods: {
     onFloorClicked(destinationFloor: number) {
       const { startFloor } = this;

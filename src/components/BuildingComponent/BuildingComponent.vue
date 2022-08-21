@@ -38,7 +38,6 @@ export default Vue.extend({
   },
   methods: {
     onFloorChanged(destinationInfo: IDestinationInfo) {
-      console.log(destinationInfo);
       const elevators = this.$refs.elevators || [];
       const freeElevators = elevators.filter(
         (elevator) => elevator.status === EElevatorStatus.IDLE
@@ -55,6 +54,7 @@ export default Vue.extend({
 
       elevator.addToQueue(destinationInfo);
     },
+
     getClosestByCurrentFloor(elevators: Elevator[], startFloor: number) {
       return elevators.sort(
         (a, b) =>
@@ -62,6 +62,7 @@ export default Vue.extend({
           Math.abs(b.currentFloor - startFloor)
       )[0];
     },
+
     getClosestByDestinationFloor(elevators: Elevator[], startFloor: number) {
       return elevators.sort(
         (a, b) =>

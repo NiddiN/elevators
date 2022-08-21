@@ -22,12 +22,14 @@ import BuildingComponent from "./components/BuildingComponent/BuildingComponent.
 
 export default Vue.extend({
   name: "App",
+
   data() {
     return {
       elevatorsAmount: 1,
       floorsAmount: 15,
     };
   },
+
   components: {
     BuildingComponent,
   },

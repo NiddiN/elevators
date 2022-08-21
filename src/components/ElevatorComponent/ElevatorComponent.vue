@@ -23,6 +23,7 @@ interface IElevatorData {
 
 export default Vue.extend({
   name: "ElevatorComponent",
+
   data: (): IElevatorData => ({
     currentFloor: 1,
     destinationInfo: null,
@@ -30,6 +31,7 @@ export default Vue.extend({
     status: EElevatorStatus.IDLE,
     queue: [],
   }),
+
   methods: {
     addToQueue(destinationInfo: IDestinationInfo) {
       this.queue.push(destinationInfo);
@@ -45,6 +47,7 @@ export default Vue.extend({
         return;
       }
 
+      // NOTE: Getting closest request from the queue
       this.destinationInfo = this.queue.sort(
         (a, b) =>
           Math.abs(a.startFloor - this.currentFloor) -
@@ -54,7 +57,11 @@ export default Vue.extend({
       this.moveElevator();
     },
 
-    removeDestinationInfo(destinationInfo: IDestinationInfo) {
+    removeDestinationInfo(destinationInfo: IDestinationInfo | null) {
+      if (this.destinationInfo === destinationInfo) {
+        this.destinationInfo = null;
+      }
+
       this.queue = this.queue.filter((request) => request !== destinationInfo);
     },
 
@@ -69,68 +76,23 @@ export default Vue.extend({
         return;
       }
 
+      // NOTE: Getting current destination floor. If an elevator stopped on the floor then the floor = 0.
       const destinationFloor =
         this.destinationInfo.startFloor ||
         this.destinationInfo.destinationFloor;
 
-      const sameDirectionRequests = !this.direction
-        ? this.queue
-        : this.queue.filter((request) => request.direction === this.direction);
-      const needToStop = sameDirectionRequests.find(
-        (request) =>
-          request.startFloor === this.currentFloor ||
-          (!request.startFloor &&
-            request.destinationFloor === this.currentFloor)
-      );
-
-      if (needToStop) {
-        let infoWasRemoved = false;
-
-        sameDirectionRequests.forEach((request) => {
-          if (request.startFloor === this.currentFloor) {
-            request.startFloor = 0;
-          } else if (
-            !request.startFloor &&
-            request.destinationFloor === this.currentFloor
-          ) {
-            infoWasRemoved = true;
-            this.removeDestinationInfo(request);
-          }
-        });
-
-        this.status = EElevatorStatus.WAITING;
-
-        if (infoWasRemoved) {
-          this.setWaitTimeout(this.setDestinationInfo.bind(this));
-        } else {
-          this.setWaitTimeout(this.moveElevator.bind(this));
-        }
-
+      if (this.isPassingPassengersStop()) {
         return;
       }
 
-      if (destinationFloor === this.currentFloor) {
-        this.status = EElevatorStatus.WAITING;
-
-        if (destinationFloor === this.destinationInfo?.startFloor) {
-          this.destinationInfo.startFloor = 0;
-          this.setWaitTimeout(this.moveElevator.bind(this));
-
-          return;
+      if (destinationFloor !== this.currentFloor) {
+        if (destinationFloor > this.currentFloor) {
+          this.direction = "up";
+          this.currentFloor++;
         } else {
-          this.removeDestinationInfo(this.destinationInfo);
-          this.setWaitTimeout(this.setDestinationInfo.bind(this));
-
-          return;
+          this.direction = "down";
+          this.currentFloor--;
         }
-      }
-
-      if (destinationFloor > this.currentFloor) {
-        this.direction = "up";
-        this.currentFloor++;
-      } else {
-        this.direction = "down";
-        this.currentFloor--;
       }
 
       setTimeout(() => this.moveElevator(), 500);
@@ -142,7 +104,51 @@ export default Vue.extend({
         callback();
       }, 2000);
     },
+
+    isPassingPassengersStop(): boolean {
+      const sameDirectionRequests = this.queue;
+
+      let isElevatorStopped = false;
+
+      sameDirectionRequests.forEach((request) => {
+        // NOTE: This conditions check that current floor is start floor of any not current request
+        // and request's direction equal elevator direction.
+        // Also condition (this.destinationInfo?.startFloor === this.currentFloor && this.destinationInfo.direction === request.direction)
+        // solve and issue when the elevator don't passing passengers when there is a change of direction on the current floor
+        if (
+          request.startFloor === this.currentFloor &&
+          (this.destinationInfo?.direction === request.direction ||
+            (this.destinationInfo?.startFloor === this.currentFloor &&
+              this.destinationInfo.direction === request.direction))
+        ) {
+          request.startFloor = 0;
+          isElevatorStopped = true;
+        } else if (
+          !request.startFloor &&
+          request.destinationFloor === this.currentFloor &&
+          this.direction === request.direction
+        ) {
+          isElevatorStopped = true;
+          this.removeDestinationInfo(request);
+        }
+      });
+
+      if (isElevatorStopped) {
+        this.status = EElevatorStatus.WAITING;
+
+        if (!this.destinationInfo) {
+          this.setWaitTimeout(this.setDestinationInfo.bind(this));
+        } else {
+          this.setWaitTimeout(this.moveElevator.bind(this));
+        }
+
+        return true;
+      }
+
+      return false;
+    },
   },
+
   computed: {
     styles() {
       return { bottom: FLOOR_HEIGHT * (this.currentFloor - 1) + "px" };
