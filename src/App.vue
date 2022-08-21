@@ -2,16 +2,37 @@
   <div id="app">
     <div class="input">
       <label for="floorsAmount">Floors amount: </label>
-      <input name="floorsAmount" type="number" v-model="floorsAmount" />
+      <input
+        id="floorsAmount"
+        name="floorsAmount"
+        type="number"
+        v-model="floorsAmount"
+      />
     </div>
     <div class="input">
       <label for="elevatorsAmount">Elevators amount: </label>
-      <input name="elevatorsAmount" type="number" v-model="elevatorsAmount" />
+      <input
+        id="elevatorsAmount"
+        name="elevatorsAmount"
+        type="number"
+        v-model="elevatorsAmount"
+      />
+    </div>
+    <div class="input">
+      <label for="isGenerationActive"
+        >Activate passenger generation:
+        <input
+          id="isGenerationActive"
+          name="isGenerationActive"
+          type="checkbox"
+          v-model="isGenerationActive"
+      /></label>
     </div>
 
     <BuildingComponent
       :elevatorsAmount="+elevatorsAmount"
       :floorsAmount="+floorsAmount"
+      :isGenerationActive="isGenerationActive"
     />
   </div>
 </template>
@@ -27,6 +48,7 @@ export default Vue.extend({
     return {
       elevatorsAmount: 1,
       floorsAmount: 15,
+      isGenerationActive: false,
     };
   },
 

@@ -46,6 +46,7 @@ export default Vue.extend({
   props: {
     elevatorsAmount: Number,
     floorsAmount: Number,
+    isGenerationActive: Boolean,
   },
 
   components: {
@@ -54,9 +55,13 @@ export default Vue.extend({
     CallStack,
   },
 
-  data(): { elevatorsCallStacks: IDestinationInfo[][] } {
+  data(): {
+    elevatorsCallStacks: IDestinationInfo[][];
+    intervalId: number | null;
+  } {
     return {
       elevatorsCallStacks: [],
+      intervalId: null,
     };
   },
 
@@ -65,8 +70,7 @@ export default Vue.extend({
       const elevators = (this.$refs.elevators ||
         []) as unknown as IElevatorComponent[];
       const freeElevators = elevators.filter(
-        (elevator) =>
-          elevator.status !== EElevatorStatus.MOVING || !elevator.queue.length
+        (elevator) => !elevator.queue.length
       );
       const passingElevator = this.getPassingElevator(
         elevators,
@@ -74,6 +78,8 @@ export default Vue.extend({
       );
       let elevator;
 
+      // NOTE: Priority of passengers destributing.
+      // Free closer elevators -> passing elevators -> closer elevators by destination floor
       if (freeElevators.length) {
         elevator = this.getClosestByCurrentFloor(
           freeElevators,
@@ -113,6 +119,7 @@ export default Vue.extend({
         );
       };
 
+      // NOTE: There we check whether the request for an elevator direction is passing or not.
       return elevators.find(
         ({ direction, destinationInfo, currentFloor, status }) =>
           isPassingDirection(
@@ -162,6 +169,45 @@ export default Vue.extend({
     onQueueUpdated(queue: IDestinationInfo[], index: number) {
       this.elevatorsCallStacks = this.elevatorsCallStacks.slice();
       this.elevatorsCallStacks[index - 1] = queue;
+    },
+
+    createRandomPassenger() {
+      const getRandomFloor = () =>
+        Math.round(Math.random() * (this.floorsAmount - 1)) + 1;
+      const startFloor = getRandomFloor();
+      const destinationFloor = getRandomFloor();
+
+      if (startFloor === destinationFloor) {
+        return;
+      }
+
+      const destinationInfo: IDestinationInfo = {
+        startFloor,
+        destinationFloor,
+        direction:
+          startFloor < destinationFloor
+            ? EElevatorDirection.UP
+            : EElevatorDirection.DOWN,
+        passengersPickedUp: false,
+      };
+
+      this.onFloorChanged(destinationInfo);
+    },
+
+    togglePassengerGeneration() {
+      if (this.intervalId) {
+        clearInterval(this.intervalId);
+
+        return;
+      }
+
+      this.intervalId = setInterval(() => this.createRandomPassenger(), 5000);
+    },
+  },
+
+  watch: {
+    isGenerationActive() {
+      this.togglePassengerGeneration();
     },
   },
 });
