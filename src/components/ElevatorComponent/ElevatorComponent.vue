@@ -13,6 +13,14 @@ import { EElevatorStatus, EElevatorDirection } from "@/core/enums";
 import { IDestinationInfo } from "@/core/interfaces";
 import { FLOOR_HEIGHT } from "@/core/constants";
 
+interface IElevatorData {
+  currentFloor: number;
+  destinationInfo: IDestinationInfo | null;
+  direction: EElevatorDirection | null;
+  status: EElevatorStatus;
+  queue: IDestinationInfo[];
+}
+
 export interface IElevatorComponent extends IElevatorData {
   addToQueue(destinationInfo: IDestinationInfo): void;
   setDestinationInfo(): void;
@@ -22,13 +30,8 @@ export interface IElevatorComponent extends IElevatorData {
   isPassingPassengersStop(): boolean;
 }
 
-interface IElevatorData {
-  currentFloor: number;
-  destinationInfo: IDestinationInfo | null;
-  direction: EElevatorDirection | null;
-  status: EElevatorStatus;
-  queue: IDestinationInfo[];
-}
+const ELEVATOR_MOVING_TIME = 500;
+const ELEVATOR_WAITING_TIME = 2000;
 
 export default Vue.extend({
   name: "ElevatorComponent",
@@ -104,14 +107,14 @@ export default Vue.extend({
         }
       }
 
-      setTimeout(() => this.moveElevator(), 500);
+      setTimeout(() => this.moveElevator(), ELEVATOR_MOVING_TIME);
     },
 
     setWaitTimeout(callback: () => void) {
       setTimeout(() => {
         this.status = EElevatorStatus.MOVING;
         callback();
-      }, 2000);
+      }, ELEVATOR_WAITING_TIME);
     },
 
     isPassingPassengersStop(): boolean {
@@ -122,22 +125,20 @@ export default Vue.extend({
       sameDirectionRequests.forEach((request) => {
         // NOTE: This condition checks that current floor is a start floor of any request
         // and request's direction equal to an elevator direction.
-        // Also condition (this.destinationInfo?.startFloor === this.currentFloor && this.destinationInfo.direction === request.direction)
-        // solves and issue when an elevator doesn't passing passengers when there is a change of direction on the current floor
-        if (
+        const isPickUpFloor =
           !request.passengersPickedUp &&
           request.startFloor === this.currentFloor &&
-          (this.destinationInfo?.direction === request.direction ||
-            (this.destinationInfo?.startFloor === this.currentFloor &&
-              this.destinationInfo.direction === request.direction))
-        ) {
-          request.passengersPickedUp = true;
-          isElevatorStopped = true;
-        } else if (
+          this.destinationInfo?.direction === request.direction;
+
+        const isDropOfFloor =
           request.passengersPickedUp &&
           request.destinationFloor === this.currentFloor &&
-          this.direction === request.direction
-        ) {
+          this.direction === request.direction;
+
+        if (isPickUpFloor) {
+          request.passengersPickedUp = true;
+          isElevatorStopped = true;
+        } else if (isDropOfFloor) {
           isElevatorStopped = true;
           this.removeDestinationInfo(request);
         }

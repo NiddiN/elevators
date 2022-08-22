@@ -40,6 +40,8 @@ import ElevatorComponent, {
 } from "../ElevatorComponent/ElevatorComponent.vue";
 import CallStack from "../CallStack/CallStack.vue";
 
+const PASSENGER_GENERATION_INTERVAL = 5000;
+
 export default Vue.extend({
   name: "BuildingComponent",
 
@@ -101,7 +103,7 @@ export default Vue.extend({
       elevators: IElevatorComponent[],
       newRequest: IDestinationInfo
     ): IElevatorComponent | undefined {
-      const isPassingDirection = (
+      const isPassingDirectionAndFloorInMovingRange = (
         direction: EElevatorDirection | null,
         floor: number,
         destinationDirection: EElevatorDirection | null,
@@ -122,19 +124,19 @@ export default Vue.extend({
       // NOTE: There we check whether the request for an elevator direction is passing or not.
       return elevators.find(
         ({ direction, destinationInfo, currentFloor, status }) =>
-          isPassingDirection(
+          isPassingDirectionAndFloorInMovingRange(
             direction,
             currentFloor,
             newRequest.direction,
             newRequest.startFloor
           ) ||
-          (isPassingDirection(
+          (isPassingDirectionAndFloorInMovingRange(
             newRequest.direction,
             newRequest.startFloor,
             destinationInfo?.direction || null,
             destinationInfo?.destinationFloor || 0
           ) &&
-            isPassingDirection(
+            isPassingDirectionAndFloorInMovingRange(
               destinationInfo?.direction || null,
               destinationInfo?.startFloor || 0,
               newRequest.direction,
@@ -201,7 +203,10 @@ export default Vue.extend({
         return;
       }
 
-      this.intervalId = setInterval(() => this.createRandomPassenger(), 5000);
+      this.intervalId = setInterval(
+        () => this.createRandomPassenger(),
+        PASSENGER_GENERATION_INTERVAL
+      );
     },
   },
 
